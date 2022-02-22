@@ -47,7 +47,7 @@ app.component('app-home', {
         },
         getArticle() {
             this.doing = true;
-            const api = 'https://tdp.rehiy.com/api/article.php?';
+            const api = '/api/article.php?';
             const params = this.ids.map(id => {
                 return 'id[]=' + id;
             });
