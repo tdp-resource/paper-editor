@@ -43,8 +43,17 @@ class YunPlus
 
     private function httpRequest($url)
     {
-        $proxy = 'https://cmd.rehiy.com/curl.php?key=sdf34er32edfv45r3weffvrtyvrf';
-        $param = '&url=' . urlencode($url);
-        return file_get_contents($proxy . $param);
+        $url = 'http://cmd.rehiy.com/curl.php?url=' . urlencode($url);
+
+        $ch = curl_init($url);
+
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 6);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+
+        list($res, $err) = [curl_exec($ch), curl_errno($ch), curl_close($ch)];
+
+        return $err ? '' : $res;
     }
 }
