@@ -3,17 +3,21 @@
 header('HTTP/1.1 200 OK');
 header('Content-Type: application/json; charset=utf-8');
 
-$id = $argv[1] ?? $_GET['id'] ?? 0;
-$ff = $argv[2] ?? $_GET['ff'] ?? 0;
+$id = $_GET['id'] ?? '';
+$ff = $_GET['ff'] ?? '';
 
-if ($id < 1) {
-    $data = json_encode(['error' => '文章Id错误'], 320);
-    exit($data);
+if (!$id) {
+    exit(json_encode(['error' => '文章Id错误'], 320));
 }
 
 require_once __DIR__ . '/class/YunPlus.php';
 
 $plus = new YunPlus();
-$data = $plus->getArticle($id, $ff);
+
+$data = [];
+
+foreach ((array)$id as $i) {
+    $data[] = $plus->getArticle($i, $ff);
+}
 
 echo json_encode($data, 320);

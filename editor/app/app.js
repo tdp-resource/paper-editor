@@ -2,26 +2,29 @@ const app = Vue.createApp({});
 
 app.component('app-home', {
     data() {
-        const message = `
-        腾讯云技术早报 【${this.getDate()}】
-        |技术文章|
-        
-        1．
-        导语 | 
-        全文链接： 
-        
-        2．
-        导语 | 
-        全文链接：
-        
-        3．
-        导语 | 
-        全文链接：
+        let paper = `
+            腾讯云技术早报 【${this.getDate()}】
+            |技术文章|
+            
+            1．{SUBJECT}
+            导语 | {SUMMARY}
+            全文链接：{URL}
+            
+            2．{SUBJECT}
+            导语 | {SUMMARY}
+            全文链接：{URL}
+            
+            3．{SUBJECT}
+            导语 | {SUMMARY}
+            全文链接：{URL}
         `;
+        paper = paper.trim().replace(/\n\s+/g, '\n');
         return {
+            ids: ['', '', ''],
             items: [],
             notice: [],
-            message: message.trim().replace(/\n\s+/g, '\n')
+            paper: paper,
+            message: paper.replace(/\{.+\}/g, '')
         };
     },
     watch: {
@@ -40,6 +43,23 @@ app.component('app-home', {
             date = date < 10 ? '0' + date : date;
             month = month < 10 ? '0' + month : month;
             return month + date + '周' + ['日', '一', '二', '三', '四', '五', '六'][day];
+        },
+        getArticle() {
+            const api = 'https://tdp.rehiy.com/api/article.php?';
+            const params = this.ids.map(id => {
+                return 'id[]=' + id;
+            });
+            fetch(api + params.join('&'))
+                .then(response => response.json())
+                .then(data => {
+                    let paper = this.paper;
+                    data.forEach(item => {
+                        paper = paper.replace('{SUBJECT}', item.subject);
+                        paper = paper.replace('{SUMMARY}', item.summary);
+                        paper = paper.replace('{URL}', item.url);
+                    });
+                    this.message = paper;
+                });
         },
         checkLinks() {
             // 文章数量
@@ -86,13 +106,19 @@ app.component('app-home', {
         </nav>
         <div class="container-xxl mt-3">
             <div class="row align-items-start">
-                <div class="col-12 col-md-7">
-                    <div class="mb-3">
+                <div class="col-12 col-md-6">
+                    <div class="mt-3">
                         <textarea class="form-control lh-lg" v-model="message"></textarea>
                     </div>
                 </div>
-                <div class="col-12 col-md-5">
-                    <div class="card">
+                <div class="col-12 col-md-6">
+                    <div class="d-flex flex-row mt-3">
+                        <input type="number" class="form-control" v-model="ids[0]" />
+                        <input type="number" class="form-control ms-3" v-model="ids[1]" />
+                        <input type="number" class="form-control ms-3" v-model="ids[2]" />
+                        <button class="form-control btn btn-primary ms-3" @click="getArticle()">一键生成</button>
+                    </div>
+                    <div class="card mt-3">
                         <div class="card-header">提示</div>
                         <div class="card-body text-danger" v-if="notice.length > 0">
                             <div v-for="n in notice">{{n}}</div>
