@@ -3,28 +3,31 @@ const app = Vue.createApp({});
 app.component('app-home', {
     data() {
         const message = `
-            腾讯云技术早报 【${this.getDate()}】
-            |技术文章|
-            
-            1．
-            导语 | 
-            全文链接： 
-            
-            2．
-            导语 | 
-            全文链接：
-            
-            3．
-            导语 | 
-            全文链接：
+        腾讯云技术早报 【${this.getDate()}】
+        |技术文章|
+        
+        1．
+        导语 | 
+        全文链接： 
+        
+        2．
+        导语 | 
+        全文链接：
+        
+        3．
+        导语 | 
+        全文链接：
         `;
         return {
-            notice: '',
+            items: [],
+            notice: [],
             message: message.trim().replace(/\n\s+/g, '\n')
         };
     },
     watch: {
         message(newValue, oldValue) {
+            this.notice = [];
+            this.parserPaper();
             this.checkLinks();
         }
     },
@@ -38,28 +41,38 @@ app.component('app-home', {
             month = month < 10 ? '0' + month : month;
             return month + date + '周' + ['日', '一', '二', '三', '四', '五', '六'][day];
         },
-        parserPaper() {
-            const links = this.message.match(/https:\/\/cloud.tencent.com\/developer\/article\/\d+/g);
-        },
         checkLinks() {
-            const links = this.message.match(/https:\/\/cloud.tencent.com\/developer\/article\/\d+/g);
+            // 文章数量
+            if (this.items.length != 3) {
+                this.notice.push('格式错误，或文章数量不等于3');
+            }
             // 检测链接
-            if (!links) {
-                this.notice = '未检测到文章链接';
-                return false;
-            }
-            // 检测重复
-            const nodup = [];
-            links.forEach(item => {
-                nodup.includes(item) || nodup.push(item);
-            })
-            if (links.length !== nodup.length) {
-                this.notice = '检测到重复的文章链接，请注意！'
-                return false;
-            }
-            // 通过检测
-            this.notice = '';
-            return true;
+            const links = [];
+            this.items.forEach(item => {
+                if (links.includes(item.link)) {
+                    this.notice.push('检测到重复的文章链接，请注意！');
+                } else {
+                    links.push(item.link);
+                }
+            });
+        },
+        parserPaper() {
+            this.items = [];
+            // 文章-1
+            const item1 = this.message.match(/\n1．(.+)\n导语\s\|\s(.+)\n全文链接：(.+\d+)\s*\n+/);
+            item1 && this.items.push({
+                subject: item1[1], summary: item1[2], link: item1[3],
+            });
+            // 文章-2
+            const item2 = this.message.match(/\n2．(.+)\n导语\s\|\s(.+)\n全文链接：(.+\d+)\s*\n+/);
+            item2 && this.items.push({
+                subject: item2[1], summary: item2[2], link: item2[3],
+            });
+            // 文章-3
+            const item3 = this.message.match(/\n3．(.+)\n导语\s\|\s(.+)\n全文链接：(.+\d+)\s*\n*/);
+            item3 && this.items.push({
+                subject: item3[1], summary: item3[2], link: item3[3],
+            });
         }
     },
     template: `
@@ -73,19 +86,26 @@ app.component('app-home', {
         </nav>
         <div class="container-xxl mt-3">
             <div class="row align-items-start">
-                <div class="col-12 col-md-8">
+                <div class="col-12 col-md-7">
                     <div class="mb-3">
                         <textarea class="form-control lh-lg" v-model="message"></textarea>
                     </div>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-5">
                     <div class="card">
                         <div class="card-header">提示</div>
-                        <div class="card-body text-danger" v-if="notice">
-                            {{notice}}
+                        <div class="card-body text-danger" v-if="notice.length > 0">
+                            <div v-for="n in notice">{{n}}</div>
                         </div>
                         <div class="card-body" v-else>
                             天天开心~
+                        </div>
+                    </div>
+                    <div class="card mt-3" v-for="item in items">
+                        <div class="card-body">
+                            <h5 class="card-title">{{item.subject}}</h5>
+                            <p class="card-text">{{item.summary}}</p>
+                            <a class="card-link" target="_blank" :href="item.link" >{{item.link}}</a>
                         </div>
                     </div>
                 </div>
