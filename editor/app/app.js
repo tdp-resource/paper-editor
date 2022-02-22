@@ -20,6 +20,7 @@ app.component('app-home', {
         `;
         paper = paper.trim().replace(/\n\s+/g, '\n');
         return {
+            doing: false,
             ids: ['', '', ''],
             items: [],
             notice: [],
@@ -45,6 +46,7 @@ app.component('app-home', {
             return month + date + '周' + ['日', '一', '二', '三', '四', '五', '六'][day];
         },
         getArticle() {
+            this.doing = true;
             const api = 'https://tdp.rehiy.com/api/article.php?';
             const params = this.ids.map(id => {
                 return 'id[]=' + id;
@@ -59,6 +61,7 @@ app.component('app-home', {
                         paper = paper.replace('{URL}', item.url);
                     });
                     this.message = paper;
+                    this.doing = false;
                 });
         },
         checkLinks() {
@@ -113,10 +116,11 @@ app.component('app-home', {
                 </div>
                 <div class="col-12 col-md-6">
                     <div class="d-flex flex-row mt-3">
-                        <input type="number" class="form-control" v-model="ids[0]" />
-                        <input type="number" class="form-control ms-3" v-model="ids[1]" />
-                        <input type="number" class="form-control ms-3" v-model="ids[2]" />
-                        <button class="form-control btn btn-primary ms-3" @click="getArticle()">一键生成</button>
+                        <input type="number" class="form-control" placeholder="文章 Id 1" v-model="ids[0]" />
+                        <input type="number" class="form-control ms-3" placeholder="文章 Id 2" v-model="ids[1]" />
+                        <input type="number" class="form-control ms-3" placeholder="文章 Id 2" v-model="ids[2]" />
+                        <button class="form-control btn btn-secondary ms-3" v-if="doing">Loading</button>
+                        <button class="form-control btn btn-primary ms-3" @click="getArticle()" v-else>拉取</button>
                     </div>
                     <div class="card mt-3">
                         <div class="card-header">提示</div>
