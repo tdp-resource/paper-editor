@@ -10,6 +10,11 @@ if (!$id) {
     exit(json_encode(['error' => '文章Id错误'], 320));
 }
 
+$ef = dirname(__DIR__) . '/.env';
+if (is_file($ef)) {
+    $_ENV += parse_ini_file($ef);
+}
+
 require_once __DIR__ . '/class/YunPlus.php';
 
 $plus = new YunPlus();

@@ -8,15 +8,16 @@ class YunPlus
     private $document;
     private $xpath;
 
-    public function getArticle($id, $full = false)
+    public function getArticle($id, $full = 0)
     {
         $this->xpathInit('https://cloud.tencent.com/developer/article/' . $id);
         $subject = $this->xpathQuery('//h1[@class="article-title J-articleTitle"]');
         $content = $this->xpathQuery('//div[@class="rno-markdown J-articleContent"]');
+        $summary = mb_substr(trim(str_replace("\n", "", strip_tags($content))), 0, 100);
         return [
             'url' => $this->url,
             'subject' => trim(strip_tags($subject)),
-            'summary' => mb_substr(trim(strip_tags($content)), 0, 100),
+            'summary' => $summary,
             'content' => $full ? $content : '',
         ];
     }
@@ -43,7 +44,9 @@ class YunPlus
 
     private function httpRequest($url)
     {
-        $url = 'http://cmd.rehiy.com/curl.php?url=' . urlencode($url);
+        if (isset($_ENV['PROXY_URL'])) {
+            $url = $_ENV['PROXY_URL'] . urlencode($url);
+        }
 
         $ch = curl_init($url);
 
