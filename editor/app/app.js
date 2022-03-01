@@ -133,15 +133,9 @@ app.component('app-home', {
                             <button class="form-control btn btn-secondary ms-3" v-if="doing">Loading</button>
                             <button class="form-control btn btn-primary ms-3" @click="yunPlusArticle()" v-else>确定</button>
                         </div>
-                    </div>
-                    <div class="card mt-3">
-                        <div class="card-header">提示</div>
-                        <div class="card-body text-danger" v-if="notice.length > 0">
-                            <div v-for="n in notice">{{n}}</div>
-                        </div>
-                        <div class="card-body" v-else>
-                            天天开心~
-                        </div>
+                    </div>                    
+                    <div class="alert alert-danger mt-3" v-if="notice.length > 0">
+                        <div v-for="n in notice">{{n}}</div>
                     </div>
                     <div class="card mt-3" v-for="item in items">
                         <div class="card-body">
