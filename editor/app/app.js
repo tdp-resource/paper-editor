@@ -38,7 +38,6 @@ app.component('app-home', {
     watch: {
         message(newValue, oldValue) {
             this.notice = [];
-            console.log('change');
             this.parserPaper();
             this.checkLinks();
         }
