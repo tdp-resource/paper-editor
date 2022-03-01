@@ -52,7 +52,7 @@ app.component('app-home', {
             month = month < 10 ? '0' + month : month;
             return month + date + '周' + ['日', '一', '二', '三', '四', '五', '六'][day];
         },
-        getArticle() {
+        yunPlusArticle() {
             this.doing = true;
             const api = '/api/article.php?';
             const params = this.ids.map(id => {
@@ -61,21 +61,27 @@ app.component('app-home', {
             fetch(api + params.join('&'))
                 .then(response => response.json())
                 .then(data => {
+                    let idx = 3;
                     let paper = this.paper;
-                    data.forEach((item, idx) => {
-                        idx = idx + 3;
+                    data.forEach(item => {
                         paper = paper.replace(`{SUBJECT-${idx}}`, item.subject);
                         paper = paper.replace(`{SUMMARY-${idx}}`, item.summary);
                         paper = paper.replace(`{URL-${idx}}`, item.url);
+                        idx++;
                     });
                     this.message = paper.replace(/\{.+\}/g, '');
+                })
+                .catch(err => {
+                    console.log('拉取失败', err);
+                })
+                .finally(() => {
                     this.doing = false;
                 });
         },
         checkLinks() {
             // 文章数量
             if (this.items.length != 4) {
-                this.notice.push('文章数量不正确，或格式错误。请检查换行、空格是否有冗余。');
+                this.notice.push('文章数量不正确，或格式错误；请检查换行、空格是否有冗余。');
             }
             // 检测链接
             const links = [];
@@ -117,11 +123,16 @@ app.component('app-home', {
                     </div>
                 </div>
                 <div class="col-12 col-md-6">
-                    <div class="d-flex flex-row mt-3">
-                        <input type="number" class="form-control" placeholder="文章Id 1" v-model="ids[0]" />
-                        <input type="number" class="form-control ms-3" placeholder="文章Id 2" v-model="ids[1]" />
-                        <button class="form-control btn btn-secondary ms-3" v-if="doing">Loading</button>
-                        <button class="form-control btn btn-primary ms-3" @click="getArticle()" v-else>拉取</button>
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            从 <a href="https://cloud.tencent.com/developer" target="_blank">云+社区</a> 拉取
+                        </div>
+                        <div class="d-flex flex-row m-3">
+                            <input type="number" class="form-control" placeholder="文章Id 1" v-model="ids[0]" />
+                            <input type="number" class="form-control ms-3" placeholder="文章Id 2" v-model="ids[1]" />
+                            <button class="form-control btn btn-secondary ms-3" v-if="doing">Loading</button>
+                            <button class="form-control btn btn-primary ms-3" @click="yunPlusArticle()" v-else>确定</button>
+                        </div>
                     </div>
                     <div class="card mt-3">
                         <div class="card-header">提示</div>

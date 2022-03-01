@@ -5,3 +5,7 @@
 app-root textarea {
   height: 80vh;
 }
+
+app-root a {
+  text-decoration:none; 
+} 
