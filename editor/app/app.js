@@ -4,21 +4,28 @@ app.component('app-home', {
     data() {
         let paper = `
             腾讯云技术早报 【${this.getDate()}】
-            |技术文章|
+
+            * 科技热点
+
+            1．{SUBJECT-1}
+            导语 | {SUMMARY-1}
+            全文链接：{URL-1}
             
-            1．{SUBJECT}
-            导语 | {SUMMARY}
-            全文链接：{URL}
+            2．{SUBJECT-2}
+            导语 | {SUMMARY-2}
+            全文链接：{URL-2}
+
+            * 腾讯云技术文章
+
+            1．{SUBJECT-3}
+            导语 | {SUMMARY-3}
+            全文链接：{URL-3}
             
-            2．{SUBJECT}
-            导语 | {SUMMARY}
-            全文链接：{URL}
-            
-            3．{SUBJECT}
-            导语 | {SUMMARY}
-            全文链接：{URL}
+            2．{SUBJECT-4}
+            导语 | {SUMMARY-4}
+            全文链接：{URL-4}
         `;
-        paper = paper.trim().replace(/\n\s+/g, '\n');
+        paper = paper.trim().replace(/\n +/g, '\n');
         return {
             doing: false,
             ids: ['', '', ''],
@@ -31,6 +38,7 @@ app.component('app-home', {
     watch: {
         message(newValue, oldValue) {
             this.notice = [];
+            console.log('change');
             this.parserPaper();
             this.checkLinks();
         }
@@ -55,19 +63,20 @@ app.component('app-home', {
                 .then(response => response.json())
                 .then(data => {
                     let paper = this.paper;
-                    data.forEach(item => {
-                        paper = paper.replace('{SUBJECT}', item.subject);
-                        paper = paper.replace('{SUMMARY}', item.summary);
-                        paper = paper.replace('{URL}', item.url);
+                    data.forEach((item, idx) => {
+                        idx = idx + 3;
+                        paper = paper.replace(`{SUBJECT-${idx}}`, item.subject);
+                        paper = paper.replace(`{SUMMARY-${idx}}`, item.summary);
+                        paper = paper.replace(`{URL-${idx}}`, item.url);
                     });
-                    this.message = paper;
+                    this.message = paper.replace(/\{.+\}/g, '');
                     this.doing = false;
                 });
         },
         checkLinks() {
             // 文章数量
-            if (this.items.length != 3) {
-                this.notice.push('格式错误，或文章数量不等于3');
+            if (this.items.length != 4) {
+                this.notice.push('文章数量不正确，或格式错误。请检查换行、空格是否有冗余。');
             }
             // 检测链接
             const links = [];
@@ -80,22 +89,16 @@ app.component('app-home', {
             });
         },
         parserPaper() {
+            let item;
+            let message = this.message;
+            const findExp = /\d．(.+)\n导语\s\|\s(.+)\n全文链接：(.+\d+)[\s\n]*/;
             this.items = [];
-            // 文章-1
-            const item1 = this.message.match(/\n1．(.+)\n导语\s\|\s(.+)\n全文链接：(.+\d+)\s*\n+/);
-            item1 && this.items.push({
-                subject: item1[1], summary: item1[2], link: item1[3],
-            });
-            // 文章-2
-            const item2 = this.message.match(/\n2．(.+)\n导语\s\|\s(.+)\n全文链接：(.+\d+)\s*\n+/);
-            item2 && this.items.push({
-                subject: item2[1], summary: item2[2], link: item2[3],
-            });
-            // 文章-3
-            const item3 = this.message.match(/\n3．(.+)\n导语\s\|\s(.+)\n全文链接：(.+\d+)\s*\n*/);
-            item3 && this.items.push({
-                subject: item3[1], summary: item3[2], link: item3[3],
-            });
+            while (item = message.match(findExp)) {
+                message = message.replace(findExp, '');
+                this.items.push({
+                    subject: item[1], summary: item[2], link: item[3],
+                });
+            }
         }
     },
     template: `
@@ -116,9 +119,8 @@ app.component('app-home', {
                 </div>
                 <div class="col-12 col-md-6">
                     <div class="d-flex flex-row mt-3">
-                        <input type="number" class="form-control" placeholder="文章 Id 1" v-model="ids[0]" />
-                        <input type="number" class="form-control ms-3" placeholder="文章 Id 2" v-model="ids[1]" />
-                        <input type="number" class="form-control ms-3" placeholder="文章 Id 2" v-model="ids[2]" />
+                        <input type="number" class="form-control" placeholder="文章Id 1" v-model="ids[0]" />
+                        <input type="number" class="form-control ms-3" placeholder="文章Id 2" v-model="ids[1]" />
                         <button class="form-control btn btn-secondary ms-3" v-if="doing">Loading</button>
                         <button class="form-control btn btn-primary ms-3" @click="getArticle()" v-else>拉取</button>
                     </div>
