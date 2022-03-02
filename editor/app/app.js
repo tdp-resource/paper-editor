@@ -108,7 +108,7 @@ app.component('app-home', {
     },
     template: `
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="container-fluid justify-content-start">
+            <div class="container-xxl justify-content-start">
                 <a class="navbar-brand">
                    <img src="assets/images/logo.png" style="height: 50px" />
                 </a>
