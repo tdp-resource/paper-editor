@@ -116,7 +116,7 @@ app.component('app-home', {
             </div>
         </nav>
         <div class="container-xxl mt-3">
-            <div class="row align-items-start">
+            <div class="row flex-md-row flex-column-reverse align-items-start">
                 <div class="col-12 col-md-6">
                     <div class="mt-3">
                         <textarea class="form-control lh-lg" v-model="message"></textarea>
