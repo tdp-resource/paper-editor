@@ -6,23 +6,15 @@ app.component('app-home', {
             腾讯云技术早报 【${this.getDate()}】
 
             * 科技热点
-
             1．{SUBJECT-1}
-            导语 | {SUMMARY-1}
             全文链接：{URL-1}
-            
             2．{SUBJECT-2}
-            导语 | {SUMMARY-2}
             全文链接：{URL-2}
 
             * 腾讯云技术文章
-
             1．{SUBJECT-3}
-            导语 | {SUMMARY-3}
             全文链接：{URL-3}
-            
             2．{SUBJECT-4}
-            导语 | {SUMMARY-4}
             全文链接：{URL-4}
         `;
         paper = paper.trim().replace(/\n +/g, '\n');
@@ -65,7 +57,6 @@ app.component('app-home', {
                     let paper = this.paper;
                     data.forEach(item => {
                         paper = paper.replace(`{SUBJECT-${idx}}`, item.subject);
-                        paper = paper.replace(`{SUMMARY-${idx}}`, item.summary);
                         paper = paper.replace(`{URL-${idx}}`, item.url);
                         idx++;
                     });
@@ -96,13 +87,11 @@ app.component('app-home', {
         parserPaper() {
             let item;
             let message = this.message;
-            const findExp = /\d．(.+)\n导语\s\|\s(.+)\n全文链接：(.+\d+)[\s\n]*/;
+            const findExp = /\d．(.+)\n全文链接：(http.+\d+)[\s\n]*/;
             this.items = [];
             while (item = message.match(findExp)) {
+                this.items.push({subject: item[1], link: item[2]});
                 message = message.replace(findExp, '');
-                this.items.push({
-                    subject: item[1], summary: item[2], link: item[3],
-                });
             }
         }
     },
@@ -140,7 +129,6 @@ app.component('app-home', {
                     <div class="card mt-3" v-for="item in items">
                         <div class="card-body">
                             <h5 class="card-title">{{item.subject}}</h5>
-                            <p class="card-text">{{item.summary}}</p>
                             <a class="card-link" target="_blank" :href="item.link" >{{item.link}}</a>
                         </div>
                     </div>
