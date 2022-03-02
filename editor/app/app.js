@@ -117,7 +117,11 @@ app.component('app-home', {
         </nav>
         <div class="container-xxl mt-3">
             <div class="row align-items-start">
-                
+                <div class="col-12 col-md-6">
+                    <div class="mt-3">
+                        <textarea class="form-control lh-lg" v-model="message"></textarea>
+                    </div>
+                </div>
                 <div class="col-12 col-md-6">
                     <div class="card mt-3">
                         <div class="card-header">
@@ -140,11 +144,6 @@ app.component('app-home', {
                             <a class="card-link" target="_blank" :href="item.link" >{{item.link}}</a>
                         </div>
                     </div>
-                </div>
-                <div class="col-12 col-md-6">
-                  <div class="mt-3">
-                        <textarea class="form-control lh-lg" v-model="message"></textarea>
-                    </div>  
                 </div>
             </div>
         </div>
