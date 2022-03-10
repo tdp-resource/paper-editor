@@ -5,15 +5,18 @@
   input,
   select,
   textarea {
-    font-size: 14pt;
+    font-size: 13pt;
   }
 }
 
 @media screen and (max-width: 720px) {
-  body,
-  input,
-  select,
-  textarea {
-    font-size: 12pt;
+  #header h1 {
+    font-size: 3em;
+  }
+  #header p {
+    font-size: 1em;
+  }
+  #header nav li {
+    display: block;
   }
 }
