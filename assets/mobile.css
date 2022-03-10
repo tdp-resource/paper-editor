@@ -15,6 +15,7 @@
   }
   #header p {
     font-size: 1em;
+    margin-bottom: 3em;
   }
   #header nav li {
     display: block;
