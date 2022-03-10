@@ -1,0 +1,19 @@
+/* Mobile */
+
+@media screen and (max-width: 960px) {
+  body,
+  input,
+  select,
+  textarea {
+    font-size: 14pt;
+  }
+}
+
+@media screen and (max-width: 720px) {
+  body,
+  input,
+  select,
+  textarea {
+    font-size: 12pt;
+  }
+}
