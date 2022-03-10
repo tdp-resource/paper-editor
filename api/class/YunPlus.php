@@ -19,6 +19,7 @@ class YunPlus
             'subject' => trim(strip_tags($subject)),
             'summary' => $summary,
             'content' => $full ? $content : '',
+            'needStar' => false !== strpos($this->html, '关注作者，阅读全部精彩内容'),
         ];
     }
 
