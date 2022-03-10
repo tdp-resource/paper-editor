@@ -17,7 +17,9 @@
     font-size: 1em;
     margin-bottom: 3em;
   }
-  #header nav li {
-    display: block;
+  #header nav ul {
+    width: 120px;
+    margin: 1.5em auto 0 auto;
+    text-align: left;
   }
 }
