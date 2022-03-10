@@ -14,6 +14,8 @@ body {
   margin: 0;
   background: #fff;
   overflow: hidden;
+  font-family: 'PingFangSC-Regular', 'helvetica neue', tahoma, 'PingFang SC',
+    'microsoft yahei', arial, 'hiragino sans gb', sans-serif;
 }
 
 body.is-preload *,
@@ -75,8 +77,7 @@ a:hover {
   animation: bg 60s linear infinite;
   backface-visibility: hidden;
   transform: translate3d(0, 0, 0);
-  /* Set your background with this */
-  background: url('bg.jpg') top left;
+  background: url(bg.jpg?v2) top left;
   background-repeat: repeat-x;
   background-size: 100% 100%;
   width: 3840px;
@@ -102,7 +103,7 @@ a:hover {
 #overlay {
   animation: overlay 1.5s 1.5s forwards;
   background-attachment: fixed, fixed;
-  background-image: url('pattern.png'), url('overlay.svg');
+  background-image: url(pattern.png), url(overlay.svg);
   background-position: top left, center center;
   background-repeat: repeat, no-repeat;
   background-size: auto, cover;
