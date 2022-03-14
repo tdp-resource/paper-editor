@@ -48,7 +48,10 @@ app.component('app-home', {
             let item, message = this.message;
             while (item = message.match(/\d．(.+)\n全文链接：(http.+\d+)[\s\n]*/)) {
                 message = message.replace(item[0], '');
-                items.push({ url: item[2], subject: item[1] });
+                items.push({
+                    url: item[2].trim(),
+                    subject: item[1].trim()
+                });
             }
             this.items = items;
         },
