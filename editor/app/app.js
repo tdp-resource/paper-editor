@@ -20,9 +20,10 @@ app.component('app-home', {
         paper = paper.trim().replace(/\n +/g, '\n');
         return {
             doing: false,
-            ids: ['', '', ''],
+            ids: ['', ''],
             items: [],
             notice: [],
+            needStar: [],
             paper: paper,
             message: paper.replace(/\{.+\}/g, '')
         };
@@ -59,8 +60,13 @@ app.component('app-home', {
                         paper = paper.replace(`{SUBJECT-${idx}}`, item.subject);
                         paper = paper.replace(`{URL-${idx}}`, item.url);
                         idx++;
+
+                        if (item.needStar && -1 === this.needStar.indexOf(item.url)) {
+                            this.needStar.push(item.url);
+                        }
                     });
                     this.message = paper.replace(/\{.+\}/g, '');
+                    console.log(this)
                 })
                 .catch(err => {
                     console.log('拉取失败', err);
@@ -71,16 +77,22 @@ app.component('app-home', {
         },
         checkLinks() {
             // 文章数量
-            if (this.items.length != 4) {
+            if (this.items.length != 2) {
                 this.notice.push('文章数量不正确，或格式错误；请检查换行、空格是否有冗余。');
             }
             // 检测链接
             const links = [];
             this.items.forEach(item => {
                 if (links.includes(item.link)) {
-                    this.notice.push('检测到重复的文章链接，请注意！');
+                    this.notice.push(`检测到重复的文章链接(...${item.link.substr(35)})！`);
                 } else {
                     links.push(item.link);
+                    
+                    // 检测需要关注才能阅读
+                    console.log(this.notice, item)
+                    if (-1 !== this.needStar.indexOf(item.link)) {
+                        this.notice.push(`《${item.subject}》需要关注后才能阅读！`);
+                    }
                 }
             });
         },
@@ -122,7 +134,7 @@ app.component('app-home', {
                             <button class="form-control btn btn-secondary ms-3" v-if="doing">Loading</button>
                             <button class="form-control btn btn-primary ms-3" @click="yunPlusArticle()" v-else>确定</button>
                         </div>
-                    </div>                    
+                    </div>
                     <div class="alert alert-danger mt-3" v-if="notice.length > 0">
                         <div v-for="n in notice">{{n}}</div>
                     </div>
