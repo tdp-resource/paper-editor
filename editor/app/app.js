@@ -131,8 +131,8 @@ app.component('app-home', {
                         </div>
                         <div class="card-footer text-muted">
                             <span class="badge bg-success me-3" v-if="!item.StarRequired && !item.NoDuplicate">Success</span>
-                            <span class="badge bg-warning me-3" v-if="item.StarRequired">需要关注后才能阅读</span>
-                            <span class="badge bg-danger me-3" v-if="item.NoDuplicate">检测到重复的文章链接</span>
+                            <span class="badge bg-warning me-3" v-if="item.StarRequired">需关注</span>
+                            <span class="badge bg-danger me-3" v-if="item.NoDuplicate">重复</span>
                         </div>
                     </div>
                 </div>
