@@ -23,7 +23,6 @@ app.component('app-home', {
             ids: ['', ''],
             items: [],
             notice: [],
-            needStar: [],
             paper: paper,
             message: paper.replace(/\{.+\}/g, '')
         };
@@ -60,39 +59,28 @@ app.component('app-home', {
                         paper = paper.replace(`{SUBJECT-${idx}}`, item.subject);
                         paper = paper.replace(`{URL-${idx}}`, item.url);
                         idx++;
-
-                        if (item.needStar && -1 === this.needStar.indexOf(item.url)) {
-                            this.needStar.push(item.url);
-                        }
                     });
                     this.message = paper.replace(/\{.+\}/g, '');
                 })
                 .catch(err => {
-                    console.log('拉取失败', err);
+                    this.notice.push('文章拉取失败。');
+                    console.log('文章拉取失败。', err);
                 })
                 .finally(() => {
                     this.doing = false;
                 });
         },
         checkLinks() {
-            // 文章数量
-            if (this.items.length != 2) {
+            // 检测重复
+            const duplicates = [];
+            this.items.forEach(item => {
+                item.NoDuplicate = duplicates.includes(item.link);
+                duplicates.push(item.link);
+            });
+            // 检测数量
+            if (this.items.length != 4) {
                 this.notice.push('文章数量不正确，或格式错误；请检查换行、空格是否有冗余。');
             }
-            // 检测链接
-            const links = [];
-            this.items.forEach(item => {
-                if (links.includes(item.link)) {
-                    this.notice.push(`检测到重复的文章链接(...${item.link.substr(35)})！`);
-                } else {
-                    links.push(item.link);
-                    
-                    // 检测需要关注才能阅读
-                    if (-1 !== this.needStar.indexOf(item.link)) {
-                        this.notice.push(`《${item.subject}》需要关注后才能阅读！`);
-                    }
-                }
-            });
         },
         parserPaper() {
             let item;
@@ -100,7 +88,7 @@ app.component('app-home', {
             const findExp = /\d．(.+)\n全文链接：(http.+\d+)[\s\n]*/;
             this.items = [];
             while (item = message.match(findExp)) {
-                this.items.push({subject: item[1], link: item[2]});
+                this.items.push({ subject: item[1], link: item[2] });
                 message = message.replace(findExp, '');
             }
         }
@@ -140,6 +128,11 @@ app.component('app-home', {
                         <div class="card-body">
                             <h5 class="card-title">{{item.subject}}</h5>
                             <a class="card-link" target="_blank" :href="item.link" >{{item.link}}</a>
+                        </div>
+                        <div class="card-footer text-muted">
+                            <span class="badge bg-success me-3" v-if="!item.StarRequired && !item.NoDuplicate">Success</span>
+                            <span class="badge bg-warning me-3" v-if="item.StarRequired">需要关注后才能阅读</span>
+                            <span class="badge bg-danger me-3" v-if="item.NoDuplicate">检测到重复的文章链接</span>
                         </div>
                     </div>
                 </div>
