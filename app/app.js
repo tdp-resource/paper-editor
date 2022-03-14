@@ -19,17 +19,18 @@ app.component('app-home', {
         `;
         paper = paper.trim().replace(/\n +/g, '\n');
         return {
-            pulling: false,
-            ids: ['', ''],
-            items: [],
-            notice: [],
+            items: null,
             paper: paper,
-            message: paper.replace(/\{.+\}/g, '')
+            message: paper.replace(/\{.+\}/g, ''),
+            pulling: false,
+            pullIds: ['', ''],
+            pullMsg: null
         };
     },
     watch: {
         message(newValue, oldValue) {
             this.pulling || this.pagerParser();
+            this.checkArticles();
         }
     },
     methods: {
@@ -42,52 +43,14 @@ app.component('app-home', {
             month = month < 10 ? '0' + month : month;
             return month + date + '周' + ['日', '一', '二', '三', '四', '五', '六'][day];
         },
-        yunPlusArticle() {
-            this.notice = [];
-            this.pulling = true;
-            const api = 'api/article.php?';
-            const params = this.ids.map(id => {
-                return 'id[]=' + id;
-            });
-            fetch(api + params.join('&'))
-                .then(response => response.json())
-                .then(data => {
-                    this.items[0] || (this.items[0] = {});
-                    this.items[1] || (this.items[1] = {});
-                    data[0] && (this.items[2] = data[0]);
-                    data[1] && (this.items[3] = data[1]);
-                    this.pagerRender();
-                })
-                .catch(err => {
-                    this.notice.push('文章拉取失败。');
-                    console.log('文章拉取失败。', err);
-                })
-                .finally(() => {
-                    this.pulling = false;
-                });
-        },
-        checkLinks() {
-            this.notice = [];
-            // 检测重复
-            const duplicates = [];
-            this.items.forEach(item => {
-                item.NoDuplicate = !duplicates.includes(item.url);
-                duplicates.push(item.url);
-            });
-            // 检测数量
-            if (this.items.length != 4) {
-                this.notice.push('文章数量不正确，或格式错误；请检查换行、空格是否有冗余。');
-            }
-        },
         pagerParser() {
-            this.items = [];
+            const items = [];
             let item, message = this.message;
-            const findExp = /\d．(.+)\n全文链接：(http.+\d+)[\s\n]*/;
-            while (item = message.match(findExp)) {
-                this.items.push({ subject: item[1], url: item[2] });
-                message = message.replace(findExp, '');
+            while (item = message.match(/\d．(.+)\n全文链接：(http.+\d+)[\s\n]*/)) {
+                message = message.replace(item[0], '');
+                items.push({ url: item[2], subject: item[1] });
             }
-            this.checkLinks();
+            this.items = items;
         },
         pagerRender() {
             let paper = this.paper;
@@ -98,7 +61,40 @@ app.component('app-home', {
                 }
             });
             this.message = paper.replace(/\{.+\}/g, '');
-            this.checkLinks();
+        },
+        checkArticles() {
+            const allLinks = [];
+            this.items.forEach(item => {
+                item.urlDuplicate = allLinks.includes(item.url);
+                allLinks.push(item.url);
+            });
+        },
+        yunPlusArticle() {
+            const ids = this.pullIds.filter(v => v > 0);
+            if (ids.length < 2) {
+                this.pullMsg = 1;
+                return;
+            }
+            this.pulling = true;
+            this.pullMsg = null;
+            const items = this.items || [];
+            const params = ids.map(id => 'id[]=' + id);
+            fetch('api/article.php?' + params.join('&'))
+                .then(response => response.json())
+                .then(data => {
+                    items[0] || (items[0] = {});
+                    items[1] || (items[1] = {});
+                    data[0] && (items[2] = data[0]);
+                    data[1] && (items[3] = data[1]);
+                    this.items = items;
+                    this.pagerRender();
+                })
+                .catch(err => {
+                    this.pullMsg = 2;
+                })
+                .finally(() => {
+                    this.pulling = false;
+                });
         }
     },
     template: `
@@ -123,14 +119,20 @@ app.component('app-home', {
                             从 <a href="https://cloud.tencent.com/developer" target="_blank">云+社区</a> 拉取
                         </div>
                         <div class="d-flex flex-row m-3">
-                            <input type="number" class="form-control" placeholder="文章Id 1" v-model="ids[0]" />
-                            <input type="number" class="form-control ms-3" placeholder="文章Id 2" v-model="ids[1]" />
+                            <input type="number" class="form-control" placeholder="文章Id 1" v-model="pullIds[0]" />
+                            <input type="number" class="form-control ms-3" placeholder="文章Id 2" v-model="pullIds[1]" />
                             <button class="form-control btn btn-secondary ms-3" v-if="pulling">Pulling</button>
                             <button class="form-control btn btn-primary ms-3" @click="yunPlusArticle()" v-else>确定</button>
                         </div>
                     </div>
-                    <div class="alert alert-danger mt-3" v-if="notice.length > 0">
-                        <div v-for="n in notice">{{n}}</div>
+                    <div class="alert alert-warning mt-3" v-if="pullMsg == 1">
+                        文章拉取参数错误
+                    </div>
+                    <div class="alert alert-warning mt-3" v-if="pullMsg == 2">
+                        文章拉取失败，请稍后重试
+                    </div>
+                    <div class="alert alert-danger mt-3" v-if="items && items.length != 4">
+                        文章数量或格式错误；请检查换行、空格是否有冗余。
                     </div>
                     <div class="card mt-3" v-for="item in items">
                         <div class="card-body">
@@ -138,11 +140,11 @@ app.component('app-home', {
                             <a class="card-link" target="_blank" :href="item.url" >{{item.url}}</a>
                         </div>
                         <div class="card-footer text-muted">
-                            <span class="badge bg-success me-3" v-if="item.subject && item.url && item.NoDuplicate && !item.StarRequired">PASS</span>
+                            <span class="badge bg-success me-3" v-if="item.subject && item.url && !item.urlDuplicate && !item.starRequired">PASS</span>
                             <span class="badge bg-danger me-3" v-if="!item.subject">标题异常</span>
                             <span class="badge bg-danger me-3" v-if="!item.url">链接异常</span>
-                            <span class="badge bg-warning me-3" v-if="!item.NoDuplicate">重复</span>
-                            <span class="badge bg-primary me-3" v-if="item.StarRequired">需关注</span>
+                            <span class="badge bg-warning me-3" v-if="item.urlDuplicate">重复</span>
+                            <span class="badge bg-primary me-3" v-if="item.starRequired">需关注</span>
                         </div>
                     </div>
                 </div>
