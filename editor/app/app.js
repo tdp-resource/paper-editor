@@ -66,7 +66,6 @@ app.component('app-home', {
                         }
                     });
                     this.message = paper.replace(/\{.+\}/g, '');
-                    console.log(this)
                 })
                 .catch(err => {
                     console.log('拉取失败', err);
@@ -89,7 +88,6 @@ app.component('app-home', {
                     links.push(item.link);
                     
                     // 检测需要关注才能阅读
-                    console.log(this.notice, item)
                     if (-1 !== this.needStar.indexOf(item.link)) {
                         this.notice.push(`《${item.subject}》需要关注后才能阅读！`);
                     }
