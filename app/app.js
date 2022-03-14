@@ -46,7 +46,7 @@ app.component('app-home', {
         },
         yunPlusArticle() {
             this.doing = true;
-            const api = '/api/article.php?';
+            const api = 'api/article.php?';
             const params = this.ids.map(id => {
                 return 'id[]=' + id;
             });
