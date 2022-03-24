@@ -8,18 +8,35 @@ class YunPlus
     private $document;
     private $xpath;
 
-    public function getArticle($id, $full = 0)
+    public function getArticle($url, $full = 0)
     {
-        $this->xpathInit('https://cloud.tencent.com/developer/article/' . $id);
-        $subject = $this->xpathQuery('//h1[@class="article-title J-articleTitle"]');
-        $content = $this->xpathQuery('//div[@class="rno-markdown J-articleContent"]');
+        if (is_numeric($url)) {
+            $url = 'https://cloud.tencent.com/developer/article/' . $url;
+        }
+        $this->xpathInit($url);
+
+        if (0 === strpos($url, 'https://cloud.tencent.com/developer/article')) {
+            // 腾讯云+社区
+            $subject = $this->xpathQuery('//h1[@class="article-title J-articleTitle"]');
+            $content = $this->xpathQuery('//div[@class="rno-markdown J-articleContent"]');
+            $starRequired = false !== strpos($this->html, '关注作者，阅读全部精彩内容');
+        } elseif (strpos($url, 'sina.com.cn')) {
+            // 新浪新闻
+            $subject = $this->xpathQuery('//h1[@class="main-title"]');
+            $nodeList = $this->xpath->query('//meta[@name="description"]');
+            $content = $nodeList->length ? $nodeList[0]->attributes->getNamedItem('content')->textContent : '';
+        } else {
+            $subject = $content = '';
+        }
+
         $summary = mb_substr(trim(str_replace("\n", "", strip_tags($content))), 0, 100);
+
         return [
             'url' => $this->url,
             'subject' => trim(strip_tags($subject)),
             'summary' => $summary,
             'content' => $full ? $content : '',
-            'starRequired' => false !== strpos($this->html, '关注作者，阅读全部精彩内容'),
+            'starRequired' => $starRequired ?? false,
         ];
     }
 
