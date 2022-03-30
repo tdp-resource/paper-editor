@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL);
 
 class YunPlus
 {
@@ -10,6 +11,16 @@ class YunPlus
 
     public function getArticle($url, $full = 0)
     {
+        if (empty($url)) {
+            return [
+                'url' => '',
+                'subject' => '',
+                'summary' => '',
+                'content' => '',
+                'starRequired' => false,
+            ];
+        }
+
         if (is_numeric($url)) {
             $url = 'https://cloud.tencent.com/developer/article/' . $url;
         }
@@ -25,8 +36,13 @@ class YunPlus
             $subject = $this->xpathQuery('//h1[@class="main-title"]');
             $nodeList = $this->xpath->query('//meta[@name="description"]');
             $content = $nodeList->length ? $nodeList[0]->attributes->getNamedItem('content')->textContent : '';
+        } elseif (strpos($url, 'new.qq.com')) {
+            [$subject, $content] = $this->getInfoFormHead();
         } else {
-            $subject = $content = '';
+            $subject = $this->xpathQuery('//title');
+            $nodeList = $this->xpath->query('//meta[@name="description"]');
+            $content = $nodeList->length ? $nodeList[0]->attributes->getNamedItem('content')->textContent : '';
+            
         }
 
         $summary = mb_substr(trim(str_replace("\n", "", strip_tags($content))), 0, 100);
@@ -38,6 +54,19 @@ class YunPlus
             'content' => $full ? $content : '',
             'starRequired' => $starRequired ?? false,
         ];
+    }
+
+    public function convertEncoding($str) {
+        if (mb_check_encoding($str, 'UTF-8')) return $str;
+        $str = mb_convert_encoding($str, 'UTF-8', 'GB18030');
+        return false === $str ? '' : $str;
+    }
+
+    private function getInfoFormHead()
+    {
+        $subject = preg_match('@title>(.*)</@', $this->html, $matches) ? $matches[1] : '';
+        $description = preg_match('@name="description\S\s+content="(.*)"@', $this->html, $matches) ? $matches[1] : '';
+        return [$subject, $description];
     }
 
     private function xpathInit($url)
@@ -68,10 +97,15 @@ class YunPlus
 
         $ch = curl_init($url);
 
+        $header = [
+            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36 Edg/99.0.1150.46'
+        ];
+
         curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 6);
         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
 
         list($res, $err) = [curl_exec($ch), curl_errno($ch), curl_close($ch)];
 
