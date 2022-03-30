@@ -5,9 +5,9 @@ $config = parse_ini_file(__DIR__ . '/../.env', true)['short_url'];
 
 if (isset($config['password'])) {
     if (empty($_GET['password'])) {
-        exit(json_encode(['code' => 1, 'msg' => '密码不能为空'], JSON_UNESCAPED_UNICODE));
+        exit(json_encode(['code' => 403, 'msg' => '密码不能为空'], JSON_UNESCAPED_UNICODE));
     } elseif ($config['password'] != $_GET['password']) {
-        exit(json_encode(['code' => 1, 'msg' => '密码错误'], JSON_UNESCAPED_UNICODE));
+        exit(json_encode(['code' => 403, 'msg' => '密码错误'], JSON_UNESCAPED_UNICODE));
     }
 }
 
