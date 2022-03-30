@@ -23,7 +23,7 @@ app.component('app-home', {
             paper: paper,
             message: paper.replace(/\{.+\}/g, ''),
             pulling: false,
-            pullIds: ['', ''],
+            pullIds: ['', '', '', ''],
             pullMsg: null
         };
     },
@@ -73,22 +73,19 @@ app.component('app-home', {
             });
         },
         yunPlusArticle() {
-            const ids = this.pullIds.filter(v => v > 0);
-            if (ids.length < 2) {
-                this.pullMsg = 1;
-                return;
-            }
             this.pulling = true;
             this.pullMsg = null;
             const items = this.items || [];
-            const params = ids.map(id => 'id[]=' + id);
+            const params = this.pullIds.map(id => 'id[]=' + id);
             fetch('api/article.php?' + params.join('&'))
                 .then(response => response.json())
                 .then(data => {
-                    items[0] || (items[0] = {});
-                    items[1] || (items[1] = {});
-                    data[0] && (items[2] = data[0]);
-                    data[1] && (items[3] = data[1]);
+                    console.log(items, data)
+                    items[0] || (items[0] = data[0] || {});
+                    items[1] || (items[1] = data[1] || {});
+                    data[2] && (items[2] = data[2]);
+                    data[3] && (items[3] = data[3]);
+                    console.log(items)
                     this.items = items;
                     this.pagerRender();
                 })
@@ -121,11 +118,27 @@ app.component('app-home', {
                         <div class="card-header">
                             从 <a href="https://cloud.tencent.com/developer" target="_blank">云+社区</a> 拉取
                         </div>
-                        <div class="d-flex flex-row m-3">
-                            <input type="number" class="form-control" placeholder="文章Id 1" v-model="pullIds[0]" />
-                            <input type="number" class="form-control ms-3" placeholder="文章Id 2" v-model="pullIds[1]" />
-                            <button class="form-control btn btn-secondary ms-3" v-if="pulling">Pulling</button>
-                            <button class="form-control btn btn-primary ms-3" @click="yunPlusArticle()" v-else>确定</button>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="科技热点文章URL1" v-model="pullIds[0]">
+                            </div>
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="科技热点文章URL2" v-model="pullIds[1]">
+                            </div>
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="技术文章1的ID或URL" v-model="pullIds[2]">
+                            </div>
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="技术文章2的ID或URL" v-model="pullIds[3]">
+                            </div>
+                            <div class="mb-3 text-end">
+                                <button class="btn btn-primary ms-3" disabled v-if="pulling">
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                    生成中
+                                </button>
+                                <button class="btn btn-primary ms-3" @click="yunPlusArticle()" v-else>生成早报</button>
+                                <button class="btn btn-primary ms-3">转换短链</button>
+                            </div>
                         </div>
                     </div>
                     <div class="alert alert-warning mt-3" v-if="pullMsg == 1">
