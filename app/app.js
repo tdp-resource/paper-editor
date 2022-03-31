@@ -46,13 +46,15 @@ app.component('app-home', {
         pagerParser() {
             const items = [];
             let item, message = this.message;
-            while (item = message.match(/\d．(.+)\n全文链接：(http.+\d+)[\s\n]*/)) {
+            while (item = message.match(/\d．(.+)\n全文链接：(.+)[\s\n]*/)) {
                 message = message.replace(item[0], '');
+                console.log(message)
                 items.push({
                     url: item[2].trim(),
                     subject: item[1].trim()
                 });
             }
+            console.log(items);
             this.items = items;
         },
         pagerRender() {
@@ -80,12 +82,10 @@ app.component('app-home', {
             fetch('api/article.php?' + params.join('&'))
                 .then(response => response.json())
                 .then(data => {
-                    console.log(items, data)
                     items[0] || (items[0] = data[0] || {});
                     items[1] || (items[1] = data[1] || {});
                     data[2] && (items[2] = data[2]);
                     data[3] && (items[3] = data[3]);
-                    console.log(items)
                     this.items = items;
                     this.pagerRender();
                 })
@@ -95,6 +95,37 @@ app.component('app-home', {
                 .finally(() => {
                     this.pulling = false;
                 });
+        },
+        shortURL() {
+            if (!localStorage.shortURLPassword) {
+                localStorage.shortURLPassword = prompt('请输入密码');
+            }
+            let passwordNotice = true;
+            let count = this.items.length;
+            this.items.forEach((v, k) => {
+                fetch(`api/shortURL.php?title=${encodeURI(v.subject)}&url=${encodeURI(v.url)}&password=${localStorage.shortURLPassword}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (403 === data.code) {
+                            localStorage.removeItem('shortURLPassword');
+                            passwordNotice && alert(data.msg);
+                            passwordNotice = false;
+                            return false;
+                        } else if (1 === data.code) {
+                            alert(data.msg);
+                        } else {
+                            this.items[k].url = data.url;
+                            
+                        }
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    })
+                    .finally(() => {
+                        count--;
+                        if (0 === count) this.pagerRender();
+                    });
+            })
         }
     },
     template: `
@@ -137,7 +168,7 @@ app.component('app-home', {
                                     生成中
                                 </button>
                                 <button class="btn btn-primary ms-3" @click="yunPlusArticle()" v-else>生成早报</button>
-                                <button class="btn btn-primary ms-3">转换短链</button>
+                                <button class="btn btn-primary ms-3" @click="shortURL()">转换短链</button>
                             </div>
                         </div>
                     </div>
