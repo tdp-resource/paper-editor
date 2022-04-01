@@ -1,5 +1,4 @@
 <?php
-error_reporting(E_ALL);
 
 class YunPlus
 {
@@ -34,15 +33,12 @@ class YunPlus
         } elseif (strpos($url, 'sina.com.cn')) {
             // 新浪新闻
             $subject = $this->xpathQuery('//h1[@class="main-title"]');
-            $nodeList = $this->xpath->query('//meta[@name="description"]');
-            $content = $nodeList->length ? $nodeList[0]->attributes->getNamedItem('content')->textContent : '';
+            $content = $this->getDescription();
         } elseif (strpos($url, 'new.qq.com')) {
-            [$subject, $content] = $this->getInfoFormHead();
+            [$subject, $content] = array_map(function($v) {return $this->convertEncoding($v);}, $this->getInfoFormHead());
         } else {
-            $subject = $this->xpathQuery('//title');
-            $nodeList = $this->xpath->query('//meta[@name="description"]');
-            $content = $nodeList->length ? $nodeList[0]->attributes->getNamedItem('content')->textContent : '';
-            
+            $subject = $this->getTitle();
+            $content = $this->getDescription();
         }
 
         $summary = mb_substr(trim(str_replace("\n", "", strip_tags($content))), 0, 100);
@@ -62,11 +58,67 @@ class YunPlus
         return false === $str ? '' : $str;
     }
 
-    private function getInfoFormHead()
+    /**
+     * 从head里获取文章信息（DOMDocument对utf-8之外的网页处理不大行）
+     */
+    private function getInfoFormHead($convertEncoding = true)
     {
         $subject = preg_match('@title>(.*)</@', $this->html, $matches) ? $matches[1] : '';
         $description = preg_match('@name="description\S\s+content="(.*)"@', $this->html, $matches) ? $matches[1] : '';
-        return [$subject, $description];
+        $data = [$subject, $description];
+        if ($convertEncoding) {
+            $data = array_map(function($v) {
+                return $this->convertEncoding($v);
+            }, $data);
+        }
+
+        return $data;
+    }
+
+    /**
+     * 获取标题
+     */
+    private function getTitle()
+    {
+        $find = $this->xpath->query('//meta[@property="og:title"]');
+        if ($find && $find->count() > 0) {
+            return $find->item(0)->attributes->getNamedItem('content')->textContent;
+        }
+
+        $find = $this->xpath->query('//meta[@property="twitter:title"]');
+        if ($find && $find->count() > 0) {
+            return $find->item(0)->attributes->getNamedItem('content')->textContent;
+        }
+
+        $find = $this->xpath->query('//title');
+        if ($find && $find->count() > 0) {
+            return $find->item(0)->textContent;
+        }
+
+        return '获取失败';
+    }
+
+    /**
+     * 获取简介
+     */
+    private function getDescription()
+    {
+        $find = $this->xpath->query('//meta[@property="og:description"]');
+        if ($find && $find->count() > 0) {
+            return $find->item(0)->attributes->getNamedItem('content')->textContent;
+        }
+
+        $find = $this->xpath->query('//meta[@property="twitter:description"]');
+        if ($find && $find->count() > 0) {
+            return $find->item(0)->attributes->getNamedItem('content')->textContent;
+        }
+
+        $find = $this->xpath->query('//meta[@name="description"]');
+        if ($find && $find->count() > 0) {
+            return $find->item(0)->attributes->getNamedItem('content')->textContent;
+        }
+
+        return '获取失败';
     }
 
     private function xpathInit($url)
@@ -75,7 +127,7 @@ class YunPlus
         $this->html = $this->httpRequest($url);
 
         $this->document = new DOMDocument();
-        $this->document->loadHTML($this->html, LIBXML_NOERROR);
+        $this->document->loadHTML('<?xml version="1.0" encoding="UTF-8"?>' . $this->html, LIBXML_NOERROR);
         $this->document->normalize();
 
         $this->xpath = new DOMXPath($this->document);
