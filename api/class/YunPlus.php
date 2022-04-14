@@ -14,26 +14,29 @@ class YunPlus
             return ['error' => '参数错误'];
         }
 
-        $this->xpathInit($url);
-
         //云+社区
         if (strpos($url, 'cloud.tencent.com/developer/article')) {
+            $this->xpathInit($url);
             $subject = $this->xpathQuery('//h1[@class="article-title J-articleTitle"]');
             $content = $this->xpathQuery('//div[@class="rno-markdown J-articleContent"]');
             $starRequired = false !== strpos($this->html, '关注作者，阅读全部精彩内容');
         }
         //腾讯新闻
         elseif (strpos($url, 'new.qq.com')) {
-            [$subject, $content] = $this->getMetaWithGBK();
+            $this->xpathInit($url, 'GB18030');
+            $subject = $this->getTitle();
+            $content = $this->getDescription();
             $subject = preg_replace('/_腾讯新闻/', '', $subject);
         }
         //新浪新闻
         elseif (strpos($url, 'sina.com.cn')) {
+            $this->xpathInit($url);
             $subject = $this->xpathQuery('//h1[@class="main-title"]');
             $content = $this->getDescription();
         }
         //通用模式 
         else {
+            $this->xpathInit($url);
             $subject = $this->getTitle();
             $content = $this->getDescription();
         }
@@ -96,40 +99,19 @@ class YunPlus
 
     ////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * 从head里获取文章信息（DOMDocument对utf-8之外的网页处理不大行）
-     */
-    private function getMetaWithGBK($convert2utf8 = true)
-    {
-        $subject = preg_match('@title>(.*)</@', $this->html, $matches) ? $matches[1] : '';
-        $description = preg_match('@name="description\S\s+content="(.*)"@', $this->html, $matches) ? $matches[1] : '';
-
-        if ($convert2utf8) {
-            $subject = $this->convert2utf8($subject);
-            $description = $this->convert2utf8($description);
-        }
-
-        return [$subject, $description];
-    }
-
-    private function convert2utf8($str)
-    {
-        if (mb_check_encoding($str, 'UTF-8')) {
-            return $str;
-        }
-        $str = mb_convert_encoding($str, 'UTF-8', 'GB18030');
-        return $str !== false  ? $str : '';
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////
-
-    private function xpathInit($url)
+    private function xpathInit($url, $charset = 'UTF-8')
     {
         $this->url = $url;
         $this->html = $this->httpRequest($url);
 
+        if ($charset != 'UTF-8') {
+            $this->html =  mb_convert_encoding($this->html, 'UTF-8', $charset);
+        }
+
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . $this->html;
+
         $this->document = new DOMDocument();
-        $this->document->loadHTML('<?xml version="1.0" encoding="UTF-8"?>' . $this->html, LIBXML_NOERROR);
+        $this->document->loadHTML($xml, LIBXML_NOERROR);
         $this->document->normalize();
 
         $this->xpath = new DOMXPath($this->document);
