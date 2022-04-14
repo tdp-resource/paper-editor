@@ -1,4 +1,5 @@
 <?php
+
 header('Content-Type: application/json; charset=utf-8');
 
 $config = parse_ini_file(__DIR__ . '/../.env', true)['short_url'];
@@ -28,6 +29,7 @@ $query = http_build_query([
     'dwz_keynum'   => $config['length'],
     'api_key'      => $config['key'],
 ]);
+
 $url = $config['server'] . '/api/creat.php?' . $query;
 
 $ch = curl_init($url);

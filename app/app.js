@@ -23,7 +23,7 @@ app.component('app-home', {
             paper: paper,
             message: paper.replace(/\{.+\}/g, ''),
             pulling: false,
-            pullIds: ['', '', '', ''],
+            pullURL: ['', '', '', ''],
             pullMsg: null
         };
     },
@@ -48,13 +48,11 @@ app.component('app-home', {
             let item, message = this.message;
             while (item = message.match(/\d．(.+)\n全文链接：(.+)[\s\n]*/)) {
                 message = message.replace(item[0], '');
-                console.log(message)
                 items.push({
                     url: item[2].trim(),
                     subject: item[1].trim()
                 });
             }
-            console.log(items);
             this.items = items;
         },
         pagerRender() {
@@ -74,19 +72,17 @@ app.component('app-home', {
                 allLinks.push(item.url);
             });
         },
-        yunPlusArticle() {
+        getArticles() {
             this.pulling = true;
             this.pullMsg = null;
-            const items = this.items || [];
-            const params = this.pullIds.map(id => 'id[]=' + id);
+            const params = this.pullURL.map(url => 'url[]=' + encodeURI(url));
             fetch('api/article.php?' + params.join('&'))
                 .then(response => response.json())
                 .then(data => {
-                    items[0] || (items[0] = data[0] || {});
-                    items[1] || (items[1] = data[1] || {});
-                    data[2] && (items[2] = data[2]);
-                    data[3] && (items[3] = data[3]);
-                    this.items = items;
+                    const items = [0, 1, 2, 3].map(i => {
+                        return data[i] || this.items[i];
+                    });
+                    this.items = items.filter(v => v);
                     this.pagerRender();
                 })
                 .catch(err => {
@@ -96,7 +92,7 @@ app.component('app-home', {
                     this.pulling = false;
                 });
         },
-        shortURL() {
+        getShortURL() {
             if (!localStorage.shortURLPassword) {
                 localStorage.shortURLPassword = prompt('请输入密码');
             }
@@ -115,7 +111,7 @@ app.component('app-home', {
                             alert(data.msg);
                         } else {
                             this.items[k].url = data.url;
-                            
+
                         }
                     })
                     .catch(err => {
@@ -147,28 +143,28 @@ app.component('app-home', {
                 <div class="col-12 col-md-6">
                     <div class="card mt-3">
                         <div class="card-header">
-                            从 <a href="https://cloud.tencent.com/developer" target="_blank">云+社区</a> 拉取
+                            从网络获取
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <input type="text" class="form-control" placeholder="科技热点文章URL1" v-model="pullIds[0]">
+                                <input type="text" class="form-control" placeholder="科技热点文章 URL1" v-model="pullURL[0]">
                             </div>
                             <div class="mb-3">
-                                <input type="text" class="form-control" placeholder="科技热点文章URL2" v-model="pullIds[1]">
+                                <input type="text" class="form-control" placeholder="科技热点文章 URL2" v-model="pullURL[1]">
                             </div>
                             <div class="mb-3">
-                                <input type="text" class="form-control" placeholder="技术文章1的ID或URL" v-model="pullIds[2]">
+                                <input type="text" class="form-control" placeholder="云+社区文章 URL1" v-model="pullURL[2]">
                             </div>
                             <div class="mb-3">
-                                <input type="text" class="form-control" placeholder="技术文章2的ID或URL" v-model="pullIds[3]">
+                                <input type="text" class="form-control" placeholder="云+社区文章 URL2" v-model="pullURL[3]">
                             </div>
-                            <div class="mb-3 text-end">
+                            <div class="text-end">
                                 <button class="btn btn-primary ms-3" disabled v-if="pulling">
                                     <span class="spinner-border spinner-border-sm"></span>
-                                    生成中
+                                    正在获取
                                 </button>
-                                <button class="btn btn-primary ms-3" @click="yunPlusArticle()" v-else>生成早报</button>
-                                <button class="btn btn-primary ms-3" @click="shortURL()">转换短链</button>
+                                <button class="btn btn-primary ms-3" @click="getArticles()" v-else>生成早报</button>
+                                <button class="btn btn-primary ms-3" @click="getShortURL()">转换短链</button>
                             </div>
                         </div>
                     </div>
