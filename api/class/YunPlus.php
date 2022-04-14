@@ -105,7 +105,7 @@ class YunPlus
         $this->html = $this->httpRequest($url);
 
         if ($charset != 'UTF-8') {
-            $this->html =  mb_convert_encoding($this->html, 'UTF-8', $charset);
+            $this->html = mb_convert_encoding($this->html, 'UTF-8', $charset);
         }
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . $this->html;
