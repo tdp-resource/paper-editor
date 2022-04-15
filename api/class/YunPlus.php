@@ -45,7 +45,7 @@ class YunPlus
         return [
             'url' => $this->url,
             'subject' => trim(strip_tags($subject)),
-            'summary' => mb_substr(trim(str_replace("\n", "", strip_tags($content))), 0, 100),
+            'summary' => mb_substr(trim(str_replace("\n", '', strip_tags($content))), 0, 100),
             'starRequired' => $starRequired ?? false,
         ];
     }
