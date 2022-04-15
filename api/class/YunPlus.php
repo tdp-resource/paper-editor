@@ -26,7 +26,7 @@ class YunPlus
             $this->xpathInit($url, 'GB18030');
             $subject = $this->getTitle();
             $content = $this->getDescription();
-            $subject = preg_replace('/_腾讯新闻/', '', $subject);
+            $subject = str_replace('_腾讯新闻', '', $subject);
         }
         //新浪新闻
         elseif (strpos($url, 'sina.com.cn')) {
