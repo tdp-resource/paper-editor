@@ -39,6 +39,7 @@ class YunPlus
             $this->xpathInit($url);
             $subject = $this->getTitle();
             $content = $this->getDescription();
+            $subject = str_replace(' - IT之家', '', $subject);
             $subject = str_replace(' - OSCHINA - 中文开源技术交流社区', '', $subject);
         }
 
