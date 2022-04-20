@@ -12,6 +12,9 @@ class YunPlus
     {
         if (empty($url)) {
             return ['error' => '参数错误'];
+        } else {
+            $this->url = $this->html = '';
+            $this->document = $this->xpath = null;
         }
 
         //云+社区
@@ -21,27 +24,28 @@ class YunPlus
             $content = $this->xpathQuery('//div[@class="rno-markdown J-articleContent"]');
             $starRequired = false !== strpos($this->html, '关注作者，阅读全部精彩内容');
         }
-        //腾讯新闻
-        elseif (strpos($url, 'new.qq.com')) {
-            $this->xpathInit($url, 'GB18030');
-            $subject = $this->getTitle();
-            $content = $this->getDescription();
-            $subject = str_replace('_腾讯新闻', '', $subject);
-        }
         //新浪新闻
         elseif (strpos($url, 'sina.com.cn')) {
             $this->xpathInit($url);
             $subject = $this->xpathQuery('//h1[@class="main-title"]');
-            $content = $this->getDescription();
         }
-        //通用模式 
-        else {
-            $this->xpathInit($url);
-            $subject = $this->getTitle();
-            $content = $this->getDescription();
-            $subject = str_replace(' - IT之家', '', $subject);
-            $subject = str_replace(' - OSCHINA - 中文开源技术交流社区', '', $subject);
+        //腾讯新闻
+        elseif (strpos($url, 'new.qq.com')) {
+            $this->xpathInit($url, 'GB18030');
         }
+
+        //通用模式
+        empty($this->xpath) && $this->xpathInit($url);
+        empty($subject) && $subject = $this->getTitle();
+        empty($content) && $content = $this->getDescription();
+
+        //清理SEO关键字
+        $subject = strtr($subject, [
+            '-36氪' => '',
+            ' - IT之家' => '',
+            '_腾讯新闻' => '',
+            ' - OSCHINA - 中文开源技术交流社区' => ''
+        ]);
 
         return [
             'url' => $this->url,
