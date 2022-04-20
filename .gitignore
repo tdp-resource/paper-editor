@@ -1,5 +1,10 @@
-test.*
-runtime.bat
+# dot file
+
 .*
 !.gitignore
 !.env-example
+
+# test file
+
+test.*
+runtime.bat
