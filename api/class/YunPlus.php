@@ -20,8 +20,6 @@ class YunPlus
         //云+社区
         if (strpos($url, 'cloud.tencent.com/developer/article')) {
             $this->xpathInit($url);
-            $subject = $this->xpathQuery('//h1[@class="article-title J-articleTitle"]');
-            $content = $this->xpathQuery('//div[@class="rno-markdown J-articleContent"]');
             $starRequired = false !== strpos($this->html, '关注作者，阅读全部精彩内容');
         }
         //新浪新闻
@@ -44,6 +42,7 @@ class YunPlus
             '-36氪' => '',
             ' - IT之家' => '',
             '_腾讯新闻' => '',
+            ' - 云+社区 - 腾讯云' => '',
             ' - OSCHINA - 中文开源技术交流社区' => ''
         ]);
 
