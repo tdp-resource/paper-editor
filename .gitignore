@@ -2,3 +2,4 @@ test.*
 runtime.bat
 .*
 !.gitignore
+!.env-example
