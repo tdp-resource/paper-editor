@@ -128,7 +128,7 @@ app.component('app-home', {
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-xxl justify-content-start">
                 <a class="navbar-brand">
-                   <img src="assets/images/logo.png" style="height: 50px" />
+                   <img src="assets/images/tdp-logo.png" style="height: 50px" />
                 </a>
                 <div class="text-secondary">技术早报编辑器</div>
             </div>
