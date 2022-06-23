@@ -18,6 +18,8 @@ if (empty($_GET['title'])) {
 
 if (empty($_GET['url'])) {
     exit(json_encode(['code' => 1, 'msg' => '链接不能为空'], JSON_UNESCAPED_UNICODE));
+} elseif (false !== strpos($_GET['url'], $config['server'])) {
+    exit(json_encode(['code' => 0, 'msg' => '已是短链接，无需重复转换', 'url' => $_GET['url']], JSON_UNESCAPED_UNICODE));
 }
 
 $query = http_build_query([
@@ -38,6 +40,8 @@ curl_setopt($ch, CURLOPT_HEADER, 0);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 6);
 curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 
 list($response, $errno, $error) = [curl_exec($ch), curl_errno($ch), curl_error($ch), curl_close($ch)];
 if (0 !== $errno) {
